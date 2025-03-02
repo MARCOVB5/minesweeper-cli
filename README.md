@@ -44,4 +44,4 @@ $ ./mine
 
 ## TODO:
 
-1. Update the gif with new controls
+1. Fix the beginner timer text.
