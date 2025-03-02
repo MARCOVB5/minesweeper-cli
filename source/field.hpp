@@ -9,6 +9,7 @@
 #include "display.hpp"
 #include "colour.hpp"
 #include "cell.hpp"
+#include <chrono>
 
 class Field
 {
@@ -21,8 +22,16 @@ class Field
     void drawField();
     void checkVictoryAndFlagMines();
     void getMove();
+    void updateTimer();
 
     bool checkValidityOfQuickClear();
+  
+    int getElapsedTime() const {
+        if (!timerStarted) return 0;
+        auto now = std::chrono::steady_clock::now();
+        return static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(
+            now - gameStartTime).count());
+    }
   
   private:
     int l;
@@ -38,6 +47,8 @@ class Field
     std::vector<std::pair<int, int>> mines; //store the location of mines
     
     GRID cells;
+    std::chrono::steady_clock::time_point gameStartTime;
+    bool timerStarted;
 };
 
 Field::Field()
@@ -85,6 +96,7 @@ Field::Field()
     flagDisp.set(flags);
     hiddenCells = l * b;
     firstSweep = true;
+    timerStarted = false;
     for (int i = 0; i < l; ++i)
     {
         Cell c;
@@ -157,9 +169,12 @@ void Field::markAdjMineCells()
 void Field::drawField()
 {
     writeBuf << reset;
-    for (int s = 0; s <= l * 4; ++s)
-        writeBuf << " ";
-    writeBuf << endl;
+    // Add initial spacing based on game mode
+    if (gameMode != BEGINNER) {
+        for (int s = 0; s <= l * 4; ++s)
+            writeBuf << " ";
+        writeBuf << endl;
+    }
 
     writeBuf << reset;
     writeBuf << "    ";
@@ -374,6 +389,11 @@ void Field::drawField()
 
     writeBuf << endl;
 
+    // For beginner mode, add horizontal spacing instead of vertical
+    if (gameMode == BEGINNER) {
+        writeBuf << "                                          ";  // Add appropriate spacing
+    }
+
     writeBuf.goToLine(0);
 }
 
@@ -433,6 +453,8 @@ void Field::getMove()
             mineTheField();
             markAdjMineCells();
             firstSweep = false;
+            timerStarted = true;
+            gameStartTime = std::chrono::steady_clock::now();
         }
         startSweep(x, y);
         return;
@@ -452,6 +474,16 @@ void Field::checkVictoryAndFlagMines()
                 cells[mine.first][mine.second].toggleflag();
             }
         }
+        
+        // Force one last update to show victory screen
+        system("clear");
+        dispBanner();
+        drawField();
+        dispFlagCounter();
+        dispVictoryOrDefeat();
+        writeBuf.disp();
+        writeBuf.clear();
+        usleep(500000); // Wait 0.5 seconds before closing
     }
 }
 
@@ -531,7 +563,6 @@ void Field::startSweep(int x, int y)
             checkVictoryAndFlagMines();
             return;
         }
-
         else if (QUICKCLEAR)
         {
             bool isValid = checkValidityOfQuickClear();
@@ -544,8 +575,23 @@ void Field::startSweep(int x, int y)
 
     case MINE:
         gameState = DEFEAT;
-        for (auto mine : mines)
-            cells[mine.first][mine.second].reveal();
+        // First reveal all mines
+        for (auto mine : mines) {
+            if (cells[mine.first][mine.second].flagged) {
+                cells[mine.first][mine.second].flagged = false;
+            }
+            cells[mine.first][mine.second].hidden = false;
+            cells[mine.first][mine.second].sym = red_fg + "✸";
+        }
+        // Force one last update
+        system("clear");
+        dispBanner();
+        drawField();
+        dispFlagCounter();
+        dispVictoryOrDefeat();
+        writeBuf.disp();
+        writeBuf.clear();
+        usleep(500000); // Wait 0.5 seconds before closing
         return;
     }
 
@@ -612,7 +658,22 @@ void Field::startSweep(int x, int y, POSOFCELL pos, DIR_X x_dir, DIR_Y y_dir)
         cells[x][y].reveal();
         --hiddenCells;
         break;
-    default:
-        break;
     }
+}
+
+void Field::updateTimer()
+{
+    if (!timerStarted) {
+        timeDisp.set(0);
+        return;
+    }
+    
+    auto now = std::chrono::steady_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - gameStartTime).count();
+    
+    if (elapsed > 999) {
+        elapsed = 999; // Cap at 999 seconds
+    }
+    
+    timeDisp.set(static_cast<int>(elapsed));
 }

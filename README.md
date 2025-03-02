@@ -1,17 +1,13 @@
+![](https://img.shields.io/aur/votes/minesweeper-cli-git?label=aur%20votes)
+![](https://img.shields.io/aur/version/minesweeper-cli-git)<br/>
+[![Run on Repl.it](https://repl.it/badge/github/unknownblueguy6/MineSweeper)](https://repl.it/github/unknownblueguy6/MineSweeper)
 # MineSweeper
-Command Line version of MineSweeper for Unix-like systems (GNU/Linux, macOS, BSD).
 
-This is a fork, but [the original project](https://github.com/unknownblueguy6/MineSweeper) seems dead. I will gladly delete this once the changes are accepted/rejected.
+Command Line version of MineSweeper for Unix-like systems (GNU/Linux, macOS, BSD).
 
 <p align="center">
     <img align="center" src="assets/demo.gif"></img>
 </p>
-
-## Enhancements
-* AUR support (I created an AUR installer)
-* Better mechanism for clearing the screen (faster, compatible with all Operating Systems)
-* Improved the Makefile, with an option for the release version with optimizations enabled.
-
 
 ## Prerequisites
 1. C++11 compiler
@@ -19,6 +15,12 @@ This is a fork, but [the original project](https://github.com/unknownblueguy6/Mi
 
 ## Installation
 
+### Arch
+```bash
+$ yay -S minesweeper-cli-git
+```
+
+### Others
 1. Clone the repo.
 
 ```bash

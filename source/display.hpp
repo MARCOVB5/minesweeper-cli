@@ -6,6 +6,7 @@
 #include "setup.hpp"
 #include "sevsegdisp.hpp"
 #include "colour.hpp"
+#include "highscore.hpp"
 
 void dispBanner()
 { //will be moved to separate header later
@@ -23,6 +24,11 @@ void dispBanner()
 
 void dispFlagCounter()
 {
+    // Add extra spacing for beginner mode
+    if (gameMode == BEGINNER) {
+        writeBuf << "\n";  // Add extra line for smaller grid
+    }
+
     writeBuf << white_fg << R"(                (_)               )" << endl;
     writeBuf << white_fg << R"(   _ __ ___  _ _ __   ___ ___ )" << endl;
     writeBuf << white_fg << R"(  | '_ ` _ \| | '_ \ / _ / __|)" << endl;
@@ -31,6 +37,19 @@ void dispFlagCounter()
     writeBuf << reset;
 
     flagDisp.update("      ");
+    
+    // Add spacing between flag counter and timer
+    writeBuf << endl << endl;
+    
+    // Add timer display
+    writeBuf << white_fg << R"(   _   _                 )" << endl;
+    writeBuf << white_fg << R"(  | |_(_)_ __ ___   ___ )" << endl;
+    writeBuf << white_fg << R"(  | __| | '_ ` _ \ / _ \)" << endl;
+    writeBuf << white_fg << R"(  | |_| | | | | | |  __/)" << endl;
+    writeBuf << white_fg << R"(   \__|_|_| |_| |_|\___|)" << endl;
+    writeBuf << reset;
+
+    timeDisp.update("      ");
 }
 
 void dispControls()
@@ -78,34 +97,72 @@ void setGameMode()
     int ch;
     do
     {
+        system("clear");
         dispBanner();
         std::cout << std::setw(30);
         std::cout << yellow_fg << "Maximise Terminal or press F11 for the optimal experience" << reset;
-        std::cout << endl
-                  << endl;
+        std::cout << endl << endl;
         std::cout << std::setw(30);
-        std::cout << white_fg << "Choose Game Mode:\n";
+        std::cout << white_fg << "Choose Option:\n";
         std::cout << std::setw(30);
-        std::cout << green_fg << "1. Beginner\n";
+        std::cout << green_fg << "1. New Game\n";
         std::cout << std::setw(30);
-        std::cout << yellow_fg << "2. Intermediate\n";
+        std::cout << blue_fg << "2. High Scores\n";
         std::cout << std::setw(30);
-        std::cout << red_fg << "3. Expert\n";
-        std::cout << std::setw(30);
-        std::cout << blue_fg << "4. Custom\n\n";
+        std::cout << red_fg << "3. Exit\n\n";
         std::cout << "                       ";
         std::cin >> ch;
 
-        if (ch < 1 || ch > 4)
-        {
+        if (ch == 2) {
+            highScores.displayScores();
+            continue;
+        }
+        else if (ch == 3) {
+            exit(0);
+        }
+        else if (ch != 1) {
             std::cout << red_fg << "Invalid Choice. Try again\n";
             auto c = getch();
+            continue;
         }
-        else
-            gameMode = (GAME_MODE)ch;
-        system("clear");
 
-    } while (ch < 1 || ch > 4);
+        // If ch == 1, proceed to game mode selection
+        system("clear");
+        do
+        {
+            dispBanner();
+            std::cout << std::setw(30);
+            std::cout << white_fg << "Choose Game Mode:\n";
+            std::cout << std::setw(30);
+            std::cout << green_fg << "1. Beginner\n";
+            std::cout << std::setw(30);
+            std::cout << yellow_fg << "2. Intermediate\n";
+            std::cout << std::setw(30);
+            std::cout << red_fg << "3. Expert\n";
+            std::cout << std::setw(30);
+            std::cout << blue_fg << "4. Custom\n";
+            std::cout << std::setw(30);
+            std::cout << white_fg << "5. Back to Main Menu\n\n";
+            std::cout << "                       ";
+            std::cin >> ch;
+
+            if (ch == 5) {
+                system("clear");
+                break; // Break inner loop to return to main menu
+            }
+            if (ch < 1 || ch > 5) {
+                std::cout << red_fg << "Invalid Choice. Try again\n";
+                auto c = getch();
+                system("clear");
+            }
+            else {
+                gameMode = (GAME_MODE)ch;
+                return; // Exit function if valid game mode selected
+            }
+
+        } while (ch < 1 || ch > 5);
+
+    } while (true); // Continue main menu loop
 }
 
 void getQuickClearSettings()
@@ -114,6 +171,7 @@ void getQuickClearSettings()
     int choice;
     do
     {
+        system("clear"); // Clear screen before showing quick clear options
         dispBanner();
         std::cout << endl;
         std::cout << yellow_fg << 
@@ -133,13 +191,12 @@ void getQuickClearSettings()
         {
             std::cout << red_fg << "Invalid Choice. Try again\n";
             auto c = getch();
+            system("clear"); // Clear screen before showing options again
         }
         else
             QUICKCLEAR = std::tolower(ch) == 'y' ? true : false;
-        
-        system("clear");
-
 
     } while (!(ch == 'y' || ch == 'n'));
     
+    system("clear"); // Clear screen before starting game
 }

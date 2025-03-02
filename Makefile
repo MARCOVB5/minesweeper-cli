@@ -5,5 +5,10 @@ CC = g++
 
 OBJ_NAME = mine
 
-all :
-	$(CC) $(OBJS) -std=c++11 -o $(OBJ_NAME)
+all : release
+
+release:
+	$(CC) $(OBJS) -std=c++11 -O3 -pthread -o $(OBJ_NAME)
+
+debug:
+	$(CC) $(OBJS) -std=c++11 -O0 -pthread -o $(OBJ_NAME)
